@@ -1,0 +1,269 @@
+# SACAT Legal Assistance Code
+---
+objects:
+  - endpoint: DADict
+---
+#Interview help button, pretty cool feature we could include
+interview help:
+  heading: About this interview
+  content: |
+    Whatever we want here!!
+---
+# SACAT Welcome Screen
+mandatory: True
+question: Welcome to the SACAT Legal Assistance Web App
+subquestion: |
+  This application is designed to help you find services that may assist you in the following matters:  
+
+  * Housing
+  * Births, deaths and marriages
+  * Equal opportunity
+  * Other administratrative and community matters
+  
+  **Disclaimer:**  
+  The service provided by this application is to provide contact details and resources   for legal services in South Australia. No guarantees can be made that any individual   service will provide services or advice to you.
+
+  **Do you understand and accept these terms and wish to continue?**
+
+buttons:
+  - "I accept and want to continue": continue
+  - "I do not accept": exit
+    url: http://www.sacat.sa.gov.au/
+---
+# This is the ineligible endpoint
+event: endpoint['JIRMineligible']
+question: Eligibility requirements not met
+subquestion:
+  Unfortunately, SACAT is only able to assist users whose matter is based in South Australia. Please refer to your state's Civil and Administrative Tribunal.
+buttons:
+  - Exit: exit
+    url: http://www.sacat.sa.gov.au/
+  - Restart: restart
+---
+# This is the eligibility block that decides where you go
+mandatory: True
+code: |
+  if JIRMresidency == 'Yes':
+    endpoint['JIRMeligible']
+  else:
+    endpoint['JIRMineligible']
+---
+# JIRM Screen that says: thank you for completing the eligibility and matter q's. app will ask for personal deets. can't figure out how to get it to show
+continue button field: target_variable
+question: |
+  Personal Details
+subquestion: |
+  Thank you for completing the eligibility and matter questions. The application will now ask for your personal details in order to compile a list of relevant legal services for your matter.
+  
+---
+# JIRM LAST SCREEN IF ALL IS ELIGIBLE
+# All variables must be included here to trigger their question block
+# Do NOT forget to add attachment!!!!!!!!!!!!!!!!!!
+event: endpoint['JIRMeligible']
+question: Results 
+subquestion: |
+  ### Thanks for using the SACAT Legal Service Assistance App! 
+  ${ JIRMmatter } get rID OF THIS JUST HERE TO TRIGGER Q BLOCK
+  Dear ${ JIRMname },
+  
+  This is the SACAT Legal Service Assistance App, accessed on ${ format_date(today(), format='EEEE, d MMMM yyyy') } at ${ format_time(current_datetime()) }.
+
+  Here are your answers. 
+
+  Questions|Answers
+  -------|-------
+  Salutation|${ JIRMsalutation }
+  Full Name|${ JIRMname }
+  South Australian Resident?|${ JIRMresidency } 
+  English as a first language?|${ JIRMesl } 
+  Matter|${ JIRMmatter } 
+  
+   Based on your answers, we have generated a list of legal services that can assist in your matter.
+   
+   *Create LIST*
+  
+  Would you like to see a complete list of legal services?
+  
+  Here is a complete list of legal services.
+  
+  ${ JIRMcolumn_header }
+  ${ JIRMdashes }
+  %for JIRMitem in JIRMtable_rows:
+  ${ JIRMitem }
+  %endfor
+
+buttons:
+  - I'm done: exit
+    url: http://www.sacat.sa.gov.au/
+  - Do it again: restart
+---
+# everything below is for the questions
+---
+# This is the eligibility question block, depending on the first question, it will lead to one or another
+question: Eligibility
+fields:
+  - Is your matter based in South Australia?: JIRMresidency
+    datatype: radio
+    choices:
+      - Yes
+      - No
+      
+  - Is English your first language?: JIRMesl
+    datatype: radio
+    choices: 
+      - Yes 
+      - No 
+      
+  - Will you require an interpreter?: JIRMinterpreter 
+    show if:   
+     variable: JIRMesl
+     is: No
+    datatype: radio
+    choices: 
+      - Yes 
+      - No
+---
+# This is a question block about matter
+question: Matter
+fields:
+  - What does your matter pertain to?: JIRMmatter
+    choices:
+      - Housing
+      - Births, deaths and marriages 
+      - Equal Opportunity 
+      - Other administrative and community matters
+      
+  - Can you be more specific?: JIRMhousingmatter
+    show if: 
+     variable: JIRMmatter
+     is: Housing
+    choices: 
+      - Residential tenancy agreements
+      - Retirement villages
+      - Residential parks
+      - Rooming houses
+      
+  - Can you be more specific?: JIRMbdmmatter
+    show if: 
+     variable: JIRMmatter
+     is: Births, deaths and marriages
+    choices: 
+      - Dispute between parents about a child's name
+      - Approval of an application by a parent to change a child's name
+      - Order the registration of death
+      - Correct registration of death
+      - Approval of an application by a child or their parent to register a change of the child's sex or gender identity 
+      - Approval of an application by a child or their parent for an identity acknowledgement certificate 
+
+  - Can you be more specific?: JIRMeomatter
+    show if: 
+     variable: JIRMmatter
+     is: Equal Opportunity 
+    choices: 
+      - Equal Opportunity complaints 
+      - Review of refusal to extend time 
+      
+  - Can you be more specific?: JIRMadmincommatter
+    show if: 
+     variable: JIRMmatter
+     is: Other administrative and community matters
+    choices: 
+      - One
+      - Two
+      - Three
+---
+#Personal Details question block
+question: Details
+fields:
+  - Salutation: JIRMsalutation
+    choices:
+      - Dr
+      - Mr
+      - Mrs
+      - Ms
+      - Miss
+  - Full Name: JIRMname
+  - Age: JIRMage
+    datatype: number
+    min: 0
+    max: 122
+  - Gender: JIRMgender
+    datatype: radio
+    choices: 
+      - Male
+      - Female
+      - Other
+      - Prefer not to answer
+  - Do you identify as Aboriginal or Torres Strait Islander?: JIRMaboriginalortsi
+    datatype: radio
+    choices: 
+      - Yes
+      - No
+      - Prefer not to answer
+  - Postcode: JIRMpostcode
+    datatype: number
+    min: 5000
+    max: 5999
+---
+#Legal Services Dictionary 
+variable name: JIRMlegalservices
+use objects: True
+data:
+  - Legal Service: ONE
+    Location: Home
+    Area: 
+    Contact Number: 03297402394
+    Area of Expertise: Housing
+  - Legal Service: ONE
+    Location: Home
+    Area: 
+    Contact Number: 03297402394  
+  - Legal Service: ONE
+    Location: Home
+    Area: 
+    Contact Number: 03297402394
+  - Legal Service: ONE
+    Location: Home
+    Area: 
+    Contact Number: 03297402394
+---
+# Creates the column header
+code: |
+  # This makes the column header empty
+  JIRMcolumn_header = ""
+  
+  # We access the first list element and iterate through its keys
+  for JIRMitem in JIRMlegalservices[0]:
+    JIRMcolumn_header += JIRMitem + '|'
+  
+  # This gets rid of the last '|'
+  JIRMcolumn_header = JIRMcolumn_header[:-1]
+---
+# Creates the dashes for the table header 
+code: |
+  # We iterate up to one short of the length of the dictionary so the last pipe doesn't need to be taken off.
+  JIRMdashes = "---"
+  for i in range(len(JIRMlegalservices[0]) - 1):
+    JIRMdashes += "|---"
+---
+# This constructs a list for display as the rows of the table.  Again, we iterate
+# through the first dictionary to get our list of keys, then we iterate over
+# this list to extract the values for each row. Dictionaryception!
+code: | 
+  # Initialise empty list
+  JIRMtable_rows = []
+  
+  # First loop.  Iterate through each list element putting each dictionary
+  # into JIRMitem
+  for JIRMitem in JIRMlegalservices:
+      # Second loop.  Get the keys so we can get the values
+      # But before we start, initialise a temporary variable in which
+      # we construct the Markdown table row
+      JIRMrow = ""
+      for JIRMkey in JIRMitem:
+        JIRMrow += str(JIRMitem[JIRMkey]) + '|'
+      # Trim the last pipe
+      JIRMrow = JIRMrow[:-1]
+      # Add to the list
+      JIRMtable_rows.append(JIRMrow)
+---
